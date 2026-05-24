@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # Frontend - Next.js
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NODE_ENV=production
+    depends_on:
+      - backend
+    networks:
+      - trudeed-network
+    command: npm run dev
+
+  # Backend - FastAPI
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./trudeed.db
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./backend/trudeed.db:/app/trudeed.db
+      - ./backend:/app
+    networks:
+      - trudeed-network
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+networks:
+  trudeed-network:
+    driver: bridge
